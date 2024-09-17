@@ -1,0 +1,101 @@
+<!doctype html>
+<html lang="en">
+
+<head>
+    <!-- Required meta tags -->
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+
+    <!-- Bootstrap CSS -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.0.2/dist/css/bootstrap.min.css" rel="stylesheet"
+        integrity="sha384-EVSTQN3/azprG1Anm3QDgpJLIm9Nao0Yz1ztcQTwFspd3yD65VohhpuuCOmLASjC" crossorigin="anonymous">
+
+    <title>Registration</title>
+    <style>
+        body {
+            height: 100vh;
+            margin-top: 0px !important;
+            padding: 0;
+            background: url('bg2.png') no-repeat center center fixed;
+            background-size: cover;
+            justify-content: center;
+            align-items: center;
+        }
+
+        .animate-bounce {
+            margin-bottom: 20px;
+            animation: bounce 2s infinite;
+            font-family: "SUSE", sans-serif;
+            font-optical-sizing: auto;
+            margin-top: 200px !important;
+            margin-bottom: 100px !important;
+            color: rgb(42, 147, 223);
+            font-style: normal;
+            font-weight: 600;
+        }
+    </style>
+</head>
+
+<body>
+
+    <h1 class="animate-bounce text-center">We're coming soon to shape tomorrow's leaders!</h1>
+    <div class="container">
+        <div class="row">
+            <div class="col-md-4 col-sm-12"></div>
+            <div class="col-md-4 col-sm-12">
+                <div class="registration-box my-5">
+                    <form id="registrationForm">
+                        <div class="my-4">
+                            <input type="text" id="name" class="form-control animate-fade-in" placeholder="Enter your name" required>
+                        </div>
+                        <div class="my-4">
+                            <input type="text" id="mobile" class="form-control animate-fade-in" placeholder="Enter your Mobile No" required>
+                        </div>
+                        <div class="my-4">
+                            <input type="email" id="email" class="form-control animate-fade-in" placeholder="Your Email Id" required>
+                        </div>
+
+                        <button type="submit" class="btn btn-primary w-100 animate-slide-in">Next</button>
+                    </form>
+                </div>
+            </div>
+            <div class="col-md-4 col-sm-12"></div>
+        </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.0.2/dist/js/bootstrap.bundle.min.js"
+        integrity="sha384-MrcW6ZMFYlzcLA8Nl+NtUVF0sA7MsXsP1UyJoMp4YLEuNSfAP+JcXn/tWtIaxVXM"
+        crossorigin="anonymous"></script>
+
+    <!-- JavaScript for handling form submission and navigation -->
+    <script>
+        document.getElementById('registrationForm').addEventListener('submit', async function(event) {
+            event.preventDefault(); // Prevent the default form submission
+
+            const name = document.getElementById('name').value;
+            const mobile = document.getElementById('mobile').value;
+            const email = document.getElementById('email').value;
+
+            try {
+                const response = await fetch('https://eec-kid-backend.onrender.com/api/registration1/register', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({ name, mobile, email })
+                });
+
+                if (!response.ok) {
+                    throw new Error('Network response was not ok');
+                }
+
+                window.location.href = 'registration2.html'; // Redirect to the next page
+            } catch (error) {
+                console.error('Error:', error);
+            }
+        });
+    </script>
+
+</body>
+
+</html>
