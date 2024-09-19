@@ -140,7 +140,7 @@
                     const errorText = await response.text(); // Get the error message from backend
                     throw new Error(errorText); // Pass the error message to the catch block
                 }
-
+                 localStorage.setItem('registration1Submitted', 'true');
                 // If registration is successful, redirect to the next page
                 window.location.href = 'registration2.html';
             } catch (error) {
