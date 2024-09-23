@@ -28,6 +28,12 @@
             background-color: white;
             box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
         }
+
+        #loading {
+            text-align: center;
+            margin-top: 50px;
+            display: none;
+        }
     </style>
 </head>
 
@@ -48,6 +54,14 @@
             <button type="submit" class="btn btn-primary">Login</button>
             <div id="error-message" class="text-danger mt-3"></div>
         </form>
+    </div>
+
+    <!-- Loading Indicator -->
+    <div id="loading">
+        <div class="spinner-border text-primary" role="status">
+            <span class="visually-hidden">Loading...</span>
+        </div>
+        <p>Loading registration data...</p>
     </div>
 
     <!-- Combined Registration Table -->
@@ -97,60 +111,77 @@
         }
 
         async function fetchData(token) {
-            try {
-                const registration1Response = await fetch('https://eec-kid-backend.onrender.com/api/admin/registration1', {
-                    headers: { 'Authorization': `Bearer ${token}` }
-                });
-                const registration1Data = await registration1Response.json();
+            document.getElementById('loading').style.display = 'block';
 
-                const registration2Response = await fetch('https://eec-kid-backend.onrender.com/api/admin/registration2', {
-                    headers: { 'Authorization': `Bearer ${token}` }
-                });
-                const registration2Data = await registration2Response.json();
+            try {
+                const [registration1Data, registration2Data] = await Promise.all([
+                    fetchWithAuth('https://eec-kid-backend.onrender.com/api/admin/registration1', token),
+                    fetchWithAuth('https://eec-kid-backend.onrender.com/api/admin/registration2', token)
+                ]);
 
                 // Populate the combined table
                 populateCombinedTable(registration1Data, registration2Data);
 
-                // Show the table after data is populated
+                // Hide loading and show the table
+                document.getElementById('loading').style.display = 'none';
                 document.getElementById('login-form').style.display = 'none';
                 document.getElementById('data-tables').style.display = 'block';
             } catch (error) {
-                console.error('Error fetching data:', error);
+                document.getElementById('loading').innerText = 'Error fetching data.';
             }
+        }
+
+        async function fetchWithAuth(url, token) {
+            const response = await fetch(url, {
+                headers: { 'Authorization': `Bearer ${token}` }
+            });
+            if (!response.ok) {
+                throw new Error(`Error fetching ${url}`);
+            }
+            return response.json();
         }
 
         function populateCombinedTable(registration1Data, registration2Data) {
-            const table = document.getElementById('combined-data');
-            table.innerHTML = ''; // Clear previous content
+    const table = document.getElementById('combined-data');
+    table.innerHTML = ''; // Clear previous content
 
-            const maxLength = Math.max(registration1Data.length, registration2Data.length);
+    // Convert registration2Data to a map for faster lookup by a unique identifier (e.g., email or name)
+    const reg2Map = new Map(registration2Data.map(reg2 => [reg2.mainStudent?.name || '', reg2]));
 
-            for (let i = 0; i < maxLength; i++) {
-                const reg1 = registration1Data[i] || {};
-                const reg2 = registration2Data[i] || {};
-                const mainStudent = reg2.mainStudent || {};
+    registration1Data.forEach((reg1) => {
+        // Look for a corresponding entry in registration2Data based on a unique key (e.g., name or email)
+        const reg2 = reg2Map.get(reg1.name) || {};  // Use reg1.name as the key, and provide an empty object if not found
+        const mainStudent = reg2.mainStudent || {};  // Destructure main student data from reg2
 
-                const additionalStudents = reg2.additionalStudents && reg2.additionalStudents.length > 0 ? 
-                    reg2.additionalStudents.map(student => 
-                        `Name: ${student.name || 'N/A'}, Gender: ${student.gender || 'N/A'}, Class: ${student.class || 'N/A'}, School: ${student.school || 'N/A'}`).join('<br>') 
-                    : 'No additional students';
+        const additionalStudents = reg2.additionalStudents && reg2.additionalStudents.length > 0 ?
+            reg2.additionalStudents.map(student =>
+                `Name: ${student.name || 'N/A'}, Gender: ${student.gender || 'N/A'}, Class: ${student.class || 'N/A'}, School: ${student.school || 'N/A'}`).join('<br>') :
+            'No additional students';
 
-                const tr = document.createElement('tr');
-                tr.innerHTML = `
-                    <td>${reg1.name || 'N/A'}</td>
-                    <td>${reg1.mobile || 'N/A'}</td>
-                    <td>${reg1.email || 'N/A'}</td>
-                    <td>${mainStudent.name || 'N/A'}</td>
-                    <td>${mainStudent.gender || 'N/A'}</td>
-                    <td>${mainStudent.class || 'N/A'}</td>
-                    <td>${mainStudent.school || 'N/A'}</td>
-                    <td>${additionalStudents}</td>
-                `;
-                table.appendChild(tr);
-            }
-        }
+        // Create a new row
+        const tr = document.createElement('tr');
+
+        // Insert both Registration1 and Registration2 data into the same row
+        tr.innerHTML = `
+            <td>${reg1.name || 'N/A'}</td>
+            <td>${reg1.mobile || 'N/A'}</td>
+            <td>${reg1.email || 'N/A'}</td>
+            <td>${mainStudent.name || 'N/A'}</td>
+            <td>${mainStudent.gender || 'N/A'}</td>
+            <td>${mainStudent.class || 'N/A'}</td>
+            <td>${mainStudent.school || 'N/A'}</td>
+            <td>${additionalStudents}</td>
+        `;
+
+        // Append the row to the table
+        table.appendChild(tr);
+    });
+}
+
+
     </script>
 
 </body>
 
-</html
+</html>
+
