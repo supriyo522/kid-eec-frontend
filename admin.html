@@ -21,15 +21,6 @@
             margin-bottom: 30px;
         }
 
-        .table-container {
-            display: none;
-            justify-content: space-between;
-        }
-
-        .card {
-            width: 48%;
-        }
-
         #login-form {
             max-width: 400px;
             margin: 50px auto;
@@ -59,50 +50,24 @@
         </form>
     </div>
 
-    <!-- Registration Tables -->
-    <div id="data-tables" class="container">
+    <!-- Combined Registration Table -->
+    <div id="data-tables" class="container" style="display:none;">
         <h2>Admin Panel - Registration Data</h2>
-
-        <!-- Side by Side Tables for Registration1 and Registration2 Data -->
-        <div class="table-container">
-            <div class="card">
-                <div class="card-header">
-                    <h4>Registration1 Data</h4>
-                </div>
-                <div class="card-body">
-                    <table class="table table-bordered">
-                        <thead>
-                            <tr>
-                                <th>Name</th>
-                                <th>Mobile</th>
-                                <th>Email</th>
-                            </tr>
-                        </thead>
-                        <tbody id="registration1-data"></tbody>
-                    </table>
-                </div>
-            </div>
-
-            <div class="card">
-                <div class="card-header">
-                    <h4>Registration2 Data</h4>
-                </div>
-                <div class="card-body">
-                    <table class="table table-bordered">
-                        <thead>
-                            <tr>
-                                <th>Main Student Name</th>
-                                <th>Gender</th>
-                                <th>Class</th>
-                                <th>School</th>
-                                <th>Additional Students</th>
-                            </tr>
-                        </thead>
-                        <tbody id="registration2-data"></tbody>
-                    </table>
-                </div>
-            </div>
-        </div>
+        <table class="table table-bordered">
+            <thead>
+                <tr>
+                    <th>Reg1 Name</th>
+                    <th>Reg1 Mobile</th>
+                    <th>Reg1 Email</th>
+                    <th>Reg2 Main Student Name</th>
+                    <th>Reg2 Gender</th>
+                    <th>Reg2 Class</th>
+                    <th>Reg2 School</th>
+                    <th>Reg2 Additional Students</th>
+                </tr>
+            </thead>
+            <tbody id="combined-data"></tbody>
+        </table>
     </div>
 
     <script>
@@ -137,54 +102,55 @@
                     headers: { 'Authorization': `Bearer ${token}` }
                 });
                 const registration1Data = await registration1Response.json();
-                populateRegistration1Table(registration1Data);
 
                 const registration2Response = await fetch('https://eec-kid-backend.onrender.com/api/admin/registration2', {
                     headers: { 'Authorization': `Bearer ${token}` }
                 });
                 const registration2Data = await registration2Response.json();
-                populateRegistration2Table(registration2Data);
 
+                // Populate the combined table
+                populateCombinedTable(registration1Data, registration2Data);
+
+                // Show the table after data is populated
                 document.getElementById('login-form').style.display = 'none';
-                document.querySelector('.table-container').style.display = 'flex';
+                document.getElementById('data-tables').style.display = 'block';
             } catch (error) {
-                document.getElementById('error-message').innerText = 'Error fetching data.';
+                console.error('Error fetching data:', error);
             }
         }
 
-        function populateRegistration1Table(data) {
-            const table = document.getElementById('registration1-data');
-            table.innerHTML = '';
-            data.forEach(row => {
-                const tr = document.createElement('tr');
-                tr.innerHTML = `<td>${row.name}</td><td>${row.mobile}</td><td>${row.email}</td>`;
-                table.appendChild(tr);
-            });
-        }
+        function populateCombinedTable(registration1Data, registration2Data) {
+            const table = document.getElementById('combined-data');
+            table.innerHTML = ''; // Clear previous content
 
-        function populateRegistration2Table(data) {
-            const table = document.getElementById('registration2-data');
-            table.innerHTML = '';
-            data.forEach(row => {
-                const additionalStudents = row.additionalStudents.map(student => 
-                    `Name: ${student.name}, Gender: ${student.gender}, Class: ${student.class}, School: ${student.school}`
-                ).join('<br>'); // Join with line breaks for readability
-                
+            const maxLength = Math.max(registration1Data.length, registration2Data.length);
+
+            for (let i = 0; i < maxLength; i++) {
+                const reg1 = registration1Data[i] || {};
+                const reg2 = registration2Data[i] || {};
+                const mainStudent = reg2.mainStudent || {};
+
+                const additionalStudents = reg2.additionalStudents && reg2.additionalStudents.length > 0 ? 
+                    reg2.additionalStudents.map(student => 
+                        `Name: ${student.name || 'N/A'}, Gender: ${student.gender || 'N/A'}, Class: ${student.class || 'N/A'}, School: ${student.school || 'N/A'}`).join('<br>') 
+                    : 'No additional students';
+
                 const tr = document.createElement('tr');
                 tr.innerHTML = `
-                    <td>${row.mainStudent.name}</td>
-                    <td>${row.mainStudent.gender}</td>
-                    <td>${row.mainStudent.class}</td>
-                    <td>${row.mainStudent.school}</td>
+                    <td>${reg1.name || 'N/A'}</td>
+                    <td>${reg1.mobile || 'N/A'}</td>
+                    <td>${reg1.email || 'N/A'}</td>
+                    <td>${mainStudent.name || 'N/A'}</td>
+                    <td>${mainStudent.gender || 'N/A'}</td>
+                    <td>${mainStudent.class || 'N/A'}</td>
+                    <td>${mainStudent.school || 'N/A'}</td>
                     <td>${additionalStudents}</td>
                 `;
                 table.appendChild(tr);
-            });
+            }
         }
     </script>
 
-    <!-- Bootstrap JS -->
-    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.0.2/dist/js/bootstrap.bundle.min.js"></script>
 </body>
 
-</html>
+</html
